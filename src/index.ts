@@ -5,6 +5,7 @@ import { classifySkill } from "./classifier.js";
 import { getActiveRules } from "./rules/index.js";
 import { generatePrescriptions, generateSystemPrescriptions } from "./prescriber.js";
 import { report } from "./reporter.js";
+import { PatientMonitor } from "./monitor/tui.js";
 import type { CLIOptions, ScanResult, SkillReport, OutputFormat } from "./types.js";
 
 const VALID_FORMATS: OutputFormat[] = ["text", "json", "md"];
@@ -30,33 +31,88 @@ function calculateScore(reports: SkillReport[]): number {
   for (const r of reports) {
     const errors = r.diagnostics.filter((d) => d.severity === "error").length;
     const warnings = r.diagnostics.filter((d) => d.severity === "warning").length;
-    passed += rulesPerSkill - errors - warnings * 0.5;
+    passed += Math.max(0, rulesPerSkill - errors - warnings * 0.5);
   }
 
   return Math.max(0, Math.min(100, Math.round((passed / totalRules) * 100)));
 }
 
-function run(options: CLIOptions) {
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function run(options: CLIOptions) {
   const { skillRules, systemRules } = getActiveRules(options.all);
+  const useMonitor = options.format === "text" && !options.noAnim && process.stdout.isTTY;
+
+  let monitor: PatientMonitor | undefined;
+
+  if (useMonitor) {
+    monitor = new PatientMonitor();
+    monitor.start();
+    await sleep(800); // Let animation play briefly
+  }
 
   // Phase 1: Scan
   const skills = scanSkills(options.path, options.skill);
 
   if (skills.length === 0) {
-    console.log("\n  No skills found at " + expandHome(options.path));
-    console.log("  Make sure SKILL.md files exist in subdirectories.\n");
+    if (monitor) {
+      monitor.stopFlatline();
+    } else {
+      console.log("\n  No skills found at " + expandHome(options.path));
+      console.log("  Make sure SKILL.md files exist in subdirectories.\n");
+    }
     process.exit(1);
   }
 
+  if (monitor) {
+    monitor.update({
+      skillsTotal: skills.length,
+      skillsScanned: 0,
+      passCount: 0,
+      warnCount: 0,
+      failCount: 0,
+      score: 0,
+      rxCount: 0,
+      phase: "scanning",
+    });
+    await sleep(500);
+  }
+
   // Phase 2+3: Diagnose + Classify
-  const reports: SkillReport[] = skills.map((skill) => {
+  const reports: SkillReport[] = [];
+  let passCount = 0;
+  let warnCount = 0;
+  let failCount = 0;
+
+  for (let i = 0; i < skills.length; i++) {
+    const skill = skills[i];
     const classification = classifySkill(skill);
     const diagnostics = skillRules.flatMap((rule) => rule.run(skill, classification));
     const prescriptions = generatePrescriptions(skill, classification, diagnostics);
     const healthy = diagnostics.filter((d) => d.severity === "error" || d.severity === "warning").length === 0;
 
-    return { skill, classification, diagnostics, prescriptions, healthy };
-  });
+    if (healthy) passCount++;
+    warnCount += diagnostics.filter((d) => d.severity === "warning").length;
+    failCount += diagnostics.filter((d) => d.severity === "error").length;
+
+    reports.push({ skill, classification, diagnostics, prescriptions, healthy });
+
+    if (monitor) {
+      monitor.update({
+        skillsTotal: skills.length,
+        skillsScanned: i + 1,
+        passCount,
+        warnCount,
+        failCount,
+        score: calculateScore(reports),
+        rxCount: reports.flatMap((r) => r.prescriptions).length,
+        phase: "diagnosing",
+      });
+      await sleep(100); // Brief pause per skill for animation effect
+    }
+  }
 
   // System-level rules
   const systemDiagnostics = systemRules.flatMap((rule) =>
@@ -64,7 +120,6 @@ function run(options: CLIOptions) {
   );
   const systemPrescriptions = generateSystemPrescriptions(systemDiagnostics);
 
-  // Phase 4: Report
   const result: ScanResult = {
     path: options.path,
     skills: reports,
@@ -73,14 +128,29 @@ function run(options: CLIOptions) {
     summary: {
       total: reports.length,
       healthy: reports.filter((r) => r.healthy).length,
-      warnings: reports.flatMap((r) => r.diagnostics).filter((d) => d.severity === "warning").length,
-      errors: reports.flatMap((r) => r.diagnostics).filter((d) => d.severity === "error").length,
+      warnings: warnCount,
+      errors: failCount,
       score: calculateScore(reports),
     },
   };
 
-  // Output header (text mode only)
-  if (options.format === "text") {
+  // Stop monitor, then print report
+  if (monitor) {
+    monitor.stop({
+      skillsTotal: skills.length,
+      skillsScanned: skills.length,
+      passCount,
+      warnCount,
+      failCount,
+      score: result.summary.score,
+      rxCount: reports.flatMap((r) => r.prescriptions).length + systemPrescriptions.length,
+      phase: "complete",
+    });
+    await sleep(300);
+  }
+
+  // Print report
+  if (options.format === "text" && !useMonitor) {
     console.log("");
     console.log("  _\u256D\u2500\u256E_\u256D\u2500\u256E_\u256D\u2500\u256E_______");
     console.log("       pulser v0.1.0");
