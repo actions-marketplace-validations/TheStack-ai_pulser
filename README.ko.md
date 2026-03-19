@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/pulser-cli"><img src="https://img.shields.io/npm/v/pulser-cli?color=10b981" alt="npm"></a>
-  <a href="https://github.com/whynowlab/pulser/blob/main/LICENSE"><img src="https://img.shields.io/github/license/whynowlab/pulser" alt="license"></a>
+  <a href="https://github.com/whynowlab/pulser/blob/main/LICENSE"><img src="https://img.shields.io/github/license/whynowlab/pulser?cacheSeconds=0" alt="license"></a>
   <a href="./README.md">English</a>
 </p>
 
