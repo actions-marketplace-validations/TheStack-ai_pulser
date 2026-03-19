@@ -1,24 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>pulser — ESLint for Claude Code Skills</title>
-  <meta name="description" content="pulser checks Claude Code SKILL.md files against 8 diagnostic rules derived from Anthropic's published principles. Auto-classify, prescribe, fix, and undo.">
-  <meta property="og:title" content="pulser — Take Your Skill's Pulse">
-  <meta property="og:description" content="The diagnostic CLI for Claude Code skills. 8 rules, auto-classification, prescriptions, --fix, and undo.">
+  <title>pulser — Diagnose. Prescribe. Fix.</title>
+  <meta name="description" content="'스킬 점검해줘' 한 마디. Claude Code 대화 안에서 진단, 분류, 처방, 수정까지 끝납니다.">
+  <meta property="og:title" content="pulser — Diagnose. Prescribe. Fix.">
+  <meta property="og:description" content="Check my skills. Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://whynowlab.github.io/pulser/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="pulser — ESLint for Claude Code Skills">
-  <meta name="twitter:description" content="Diagnose and fix Claude Code skills with 8 rules derived from Anthropic's published principles.">
+  <meta name="twitter:title" content="pulser — Diagnose. Prescribe. Fix.">
+  <meta name="twitter:description" content="Check my skills. Diagnose, classify, prescribe, and fix — without leaving the conversation.">
   <link rel="canonical" href="https://whynowlab.github.io/pulser/">
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "pulser",
-    "description": "Diagnostic CLI for Claude Code skills based on Anthropic's published principles",
+    "description": "Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.",
     "url": "https://github.com/whynowlab/pulser",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows, macOS, Linux",
@@ -26,388 +26,324 @@
     "author": { "@type": "Organization", "name": "whynowlab" }
   }
   </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'Fira Code', 'ui-monospace', 'monospace'],
+        }
+      }
+    }
+  }
+  </script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --bg: #0a0a0f;
-      --bg2: #111118;
-      --green: #10b981;
-      --cyan: #06b6d4;
-      --yellow: #eab308;
-      --red: #ef4444;
-      --text: #e2e8f0;
-      --dim: #64748b;
-      --card: rgba(255,255,255,0.04);
-      --border: rgba(255,255,255,0.08);
-    }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-    a { color: var(--green); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-
-    /* Waveform animation */
-    .wave-container {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      overflow: hidden;
-      opacity: 0.15;
-      pointer-events: none;
-    }
-    .wave-line {
-      position: absolute;
-      width: 200%;
-      height: 2px;
-      animation: waveSweep 4s linear infinite;
-    }
-    .wave-line:nth-child(1) { top: 25%; background: var(--green); animation-duration: 3.5s; }
-    .wave-line:nth-child(2) { top: 45%; background: var(--green); animation-duration: 4.2s; animation-delay: -1s; }
-    .wave-line:nth-child(3) { top: 65%; background: var(--cyan); animation-duration: 3.8s; animation-delay: -2s; }
-    .wave-line:nth-child(4) { top: 85%; background: var(--yellow); animation-duration: 4.5s; animation-delay: -0.5s; }
-    .wave-line::before {
-      content: '';
-      position: absolute;
-      width: 100%;
-      height: 100%;
-      background: inherit;
-      clip-path: polygon(
-        0% 50%, 2% 50%, 3% 10%, 4% 90%, 5% 50%, 8% 50%,
-        10% 50%, 12% 50%, 13% 10%, 14% 90%, 15% 50%, 18% 50%,
-        20% 50%, 22% 50%, 23% 10%, 24% 90%, 25% 50%, 28% 50%,
-        30% 50%, 32% 50%, 33% 10%, 34% 90%, 35% 50%, 38% 50%,
-        40% 50%, 42% 50%, 43% 10%, 44% 90%, 45% 50%, 48% 50%,
-        50% 50%, 100% 50%
-      );
-      box-shadow: 0 0 8px currentColor;
-    }
-    @keyframes waveSweep {
-      0% { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-
-    /* Layout */
-    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; }
-    section { padding: 80px 0; }
-
-    /* Hero */
-    .hero {
-      min-height: 90vh;
-      display: flex;
-      align-items: center;
-      position: relative;
-      padding: 120px 0 80px;
-    }
-    .hero-content { position: relative; z-index: 1; }
-    .badge {
-      display: inline-block;
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 1.5px;
-      color: var(--green);
-      border: 1px solid rgba(16,185,129,0.3);
-      padding: 4px 12px;
-      border-radius: 20px;
-      margin-bottom: 24px;
-    }
-    h1 {
-      font-size: clamp(32px, 5vw, 56px);
-      font-weight: 700;
-      line-height: 1.1;
-      margin-bottom: 24px;
-    }
-    h1 .dim { color: var(--dim); }
-    .subtitle {
-      font-size: 18px;
-      color: var(--dim);
-      max-width: 560px;
-      margin-bottom: 40px;
-      line-height: 1.7;
-    }
-    .cta-group { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .cta-code {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 12px 24px;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 16px;
-      color: var(--green);
-      cursor: pointer;
-      transition: border-color 0.2s;
-    }
-    .cta-code:hover { border-color: var(--green); }
-    .cta-secondary { color: var(--dim); font-size: 14px; }
-    .cta-secondary a { color: var(--text); }
-
-    /* Features */
-    .features { background: var(--bg2); }
-    .section-label {
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      color: var(--green);
-      margin-bottom: 12px;
-    }
-    h2 { font-size: 32px; margin-bottom: 48px; }
-    .feature-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-    }
-    .feature-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 28px;
-      transition: border-color 0.2s;
-    }
-    .feature-card:hover { border-color: rgba(16,185,129,0.3); }
-    .feature-icon {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      margin-bottom: 16px;
-    }
-    .feature-card h3 { font-size: 16px; margin-bottom: 8px; }
-    .feature-card p { font-size: 14px; color: var(--dim); line-height: 1.6; }
-
-    /* How it works */
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 32px;
-      counter-reset: step;
-    }
-    .step { text-align: center; }
-    .step::before {
-      counter-increment: step;
-      content: counter(step);
-      display: inline-flex;
-      width: 36px;
-      height: 36px;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background: rgba(16,185,129,0.15);
-      color: var(--green);
-      font-weight: 700;
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
-    .step h3 { font-size: 14px; margin-bottom: 4px; }
-    .step p { font-size: 13px; color: var(--dim); }
-    .step code { font-size: 12px; color: var(--green); background: var(--bg2); padding: 2px 6px; border-radius: 4px; }
-
-    /* Terminal */
-    .terminal {
-      background: #000;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-top: 48px;
-      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
-      font-size: 13px;
-      line-height: 1.6;
-    }
-    .terminal-bar {
-      background: #1a1a2e;
-      padding: 10px 16px;
-      display: flex;
-      gap: 8px;
-    }
-    .terminal-dot { width: 12px; height: 12px; border-radius: 50%; }
-    .terminal-dot:nth-child(1) { background: #ef4444; }
-    .terminal-dot:nth-child(2) { background: #eab308; }
-    .terminal-dot:nth-child(3) { background: #10b981; }
-    .terminal-body { padding: 20px; color: #e2e8f0; white-space: pre; overflow-x: auto; }
-    .t-green { color: var(--green); }
-    .t-yellow { color: var(--yellow); }
-    .t-red { color: var(--red); }
-    .t-cyan { color: var(--cyan); }
-    .t-dim { color: #4a5568; }
-
-    /* CTA bottom */
-    .cta-section { text-align: center; }
-    .cta-section h2 { margin-bottom: 16px; }
-    .cta-section p { color: var(--dim); margin-bottom: 32px; }
-    .links { display: flex; gap: 24px; justify-content: center; margin-top: 24px; }
-    .links a {
-      color: var(--dim);
-      font-size: 14px;
-      padding: 8px 16px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      transition: all 0.2s;
-    }
-    .links a:hover { color: var(--text); border-color: var(--green); text-decoration: none; }
-
-    /* Footer */
-    footer {
-      padding: 40px 0;
-      text-align: center;
-      color: var(--dim);
-      font-size: 13px;
-      border-top: 1px solid var(--border);
-    }
-
-    @media (max-width: 640px) {
-      section { padding: 48px 0; }
-      .hero { min-height: auto; padding: 80px 0 48px; }
-      .steps { grid-template-columns: 1fr 1fr; }
-    }
+    @keyframes waveScroll { 0% { transform: translateX(0) } 100% { transform: translateX(-50%) } }
+    .wave-ecg { animation: waveScroll 6s linear infinite }
+    .wave-capno { animation: waveScroll 10s linear infinite }
+    html { scroll-behavior: smooth }
     @media (prefers-reduced-motion: reduce) {
-      .wave-line { animation: none; }
+      .wave-ecg, .wave-capno { animation: none }
+      html { scroll-behavior: auto }
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen bg-black text-slate-50 font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-100">
 
-  <!-- Hero -->
-  <section class="hero">
-    <div class="wave-container">
-      <div class="wave-line"></div>
-      <div class="wave-line"></div>
-      <div class="wave-line"></div>
-      <div class="wave-line"></div>
-    </div>
-    <div class="container hero-content">
-      <div class="badge">Open Source CLI</div>
-      <h1>Your Claude Code skills are running.<br><span class="dim">But are they healthy?</span></h1>
-      <p class="subtitle">Anthropic published 7 principles for great skills. They didn't build the enforcement tool. <strong>pulser</strong> did. 8 diagnostic rules, auto-classification, prescriptions, and safe fixes.</p>
-      <div class="cta-group">
-        <div class="cta-code" onclick="navigator.clipboard.writeText('npm install -g pulser-cli')">$ npm install -g pulser-cli</div>
-        <span class="cta-secondary">then run <code style="color:var(--green)">pulser</code> · <a href="https://github.com/whynowlab/pulser">GitHub</a></span>
+  <!-- Skip Link -->
+  <a href="#main" class="absolute left-4 top-4 -translate-y-20 focus:translate-y-0 z-50 bg-cyan-500 text-black px-4 py-2 font-mono text-sm rounded-sm transition-transform focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">
+    본문으로 건너뛰기
+  </a>
+
+  <!-- Sticky Nav -->
+  <nav aria-label="주요" class="sticky top-0 z-40 bg-black/90 backdrop-blur-sm border-b border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+      <a href="#" class="font-mono font-bold text-slate-50 hover:text-cyan-500 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">pulser</a>
+      <div class="flex items-center gap-5 sm:gap-6 text-sm">
+        <a href="#demo" class="text-slate-300 hover:text-cyan-500 transition-colors hidden sm:inline focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">Demo</a>
+        <a href="#features" class="text-slate-300 hover:text-cyan-500 transition-colors hidden sm:inline focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">Features</a>
+        <a href="#usage" class="text-slate-300 hover:text-cyan-500 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">Usage</a>
+        <a href="https://github.com/whynowlab/pulser" rel="noopener noreferrer" target="_blank" class="text-slate-50 hover:text-cyan-500 transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black">GitHub</a>
       </div>
     </div>
-  </section>
+  </nav>
 
-  <!-- Features -->
-  <section class="features">
-    <div class="container">
-      <div class="section-label">Features</div>
-      <h2>Diagnose. Prescribe. Fix.</h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(16,185,129,0.12)">📋</div>
-          <h3>8 diagnostic rules</h3>
-          <p>Frontmatter, description quality, file size, gotchas, allowed-tools, structure, conflicts, usage hooks — derived from Anthropic's published principles.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(6,182,212,0.12)">🔬</div>
-          <h3>Auto-classifies skill type</h3>
-          <p>Analysis, research, generation, execution, or reference — with confidence scoring. Prescriptions are tailored to each type.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(234,179,8,0.12)">💊</div>
-          <h3>Prescriptions, not just warnings</h3>
-          <p>Every issue comes with why it matters, what to add, and a ready-to-use template. Not "fix this" — "here's how and why."</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(16,185,129,0.12)">🔧</div>
-          <h3>--fix + pulser undo</h3>
-          <p>Auto-apply safe structural fixes with full backup. Don't like the result? Roll back instantly.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(239,68,68,0.12)">🫀</div>
-          <h3>Patient monitor TUI</h3>
-          <p>EtCO2-style waveform animation in your terminal. Watch your skills get diagnosed in real time.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon" style="background:rgba(6,182,212,0.12)">🤖</div>
-          <h3>Claude Code skill built-in</h3>
-          <p>Say "check my skills" or /pulser inside Claude Code. Claude runs the diagnosis and offers to fix issues conversationally.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+  <main id="main">
 
-  <!-- How it works -->
-  <section>
-    <div class="container">
-      <div class="section-label">How it works</div>
-      <h2>Five steps to healthy skills</h2>
-      <div class="steps">
-        <div class="step">
-          <h3>Install</h3>
-          <p><code>npm i -g pulser-cli</code></p>
+    <!-- ========== Hero ========== -->
+    <section class="relative overflow-hidden py-20 sm:py-24 md:py-32">
+      <!-- Waveform Background -->
+      <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+        <!-- ECG waveform (green, faster) -->
+        <div class="wave-ecg absolute inset-0" style="width:200%;opacity:0.18">
+          <svg id="wave-ecg-svg" class="w-full h-full" viewBox="0 0 2400 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
-        <div class="step">
-          <h3>Run</h3>
-          <p><code>pulser</code></p>
-        </div>
-        <div class="step">
-          <h3>Diagnose</h3>
-          <p>8 rules scan your skills</p>
-        </div>
-        <div class="step">
-          <h3>Fix</h3>
-          <p><code>pulser --fix</code></p>
-        </div>
-        <div class="step">
-          <h3>Undo</h3>
-          <p><code>pulser undo</code></p>
+        <!-- EtCO2 / Capnography waveform (cyan, slower) -->
+        <div class="wave-capno absolute inset-0" style="width:200%;opacity:0.22">
+          <svg id="wave-capno-svg" class="w-full h-full" viewBox="0 0 2400 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
 
-      <!-- Terminal demo -->
-      <div class="terminal">
-        <div class="terminal-bar">
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
-          <div class="terminal-dot"></div>
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div class="max-w-4xl text-center md:text-left">
+          <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Prescribe. Fix.</p>
+          <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight mb-6 text-slate-50">
+            '스킬 점검해줘'<br class="sm:hidden"> 한 마디.
+          </h1>
+          <p class="text-lg sm:text-xl md:text-2xl text-slate-300 leading-relaxed mb-3">
+            Claude Code 대화 안에서 진단, 분류, 처방, 수정까지 끝납니다.
+          </p>
+          <p class="text-base sm:text-lg md:text-xl text-slate-400 leading-relaxed mb-10">
+            "Check my skills." Diagnose, classify, prescribe, and fix — without leaving the conversation.
+          </p>
+
+          <!-- Install CTA -->
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 max-w-xl md:mx-0 mx-auto">
+            <div class="bg-[#0a0a0a] border border-slate-800 rounded-sm px-4 py-3 font-mono text-sm sm:text-base text-cyan-500 flex-1 overflow-x-auto whitespace-nowrap">
+              <span class="text-slate-500 select-none">$ </span>npm install -g pulser-cli
+            </div>
+            <button onclick="copyCmd(this)" aria-label="설치 명령 복사" class="copy-btn inline-flex items-center justify-center min-h-[48px] px-5 border-2 border-cyan-500 text-cyan-500 font-mono font-bold rounded-sm hover:bg-cyan-500 hover:text-black active:bg-cyan-600 active:border-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors cursor-pointer">
+              Copy
+            </button>
+          </div>
+          <div aria-live="polite" class="copy-feedback mt-2 font-mono text-sm h-5"></div>
         </div>
-        <div class="terminal-body"><span class="t-dim">$</span> pulser
-
-  <span class="t-dim">pulser v0.3.1</span>
-
-  <span class="t-green">54</span> skills scanned
-  <span class="t-green">✓ 48 healthy</span>  <span class="t-yellow">⚠ 4 warnings</span>  <span class="t-red">✗ 2 errors</span>
-  Score: <span class="t-green">89</span>/100
-
-  <span class="t-dim">Top issues:</span>
-    cardnews <span class="t-dim">—</span> <span class="t-yellow">No Gotchas, no allowed-tools</span>
-    geo-audit <span class="t-dim">—</span> <span class="t-yellow">338 lines single file</span>
-
-  <span class="t-yellow">💊 Rx #1 — cardnews</span>
-  <span class="t-dim">[GOTCHAS]</span> Add Gotchas section
-  <span class="t-dim">  Why:</span> Anthropic's highest-ROI improvement
-  <span class="t-dim">  Suggestion:</span>
-  <span class="t-cyan">  ## Gotchas</span>
-  <span class="t-cyan">  1. Validate output against project conventions</span>
-  <span class="t-cyan">  2. Check scope — don't over-generate</span>
-
-  <span class="t-dim">Fix type:</span> <span class="t-green">AUTO</span></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- CTA -->
-  <section class="cta-section">
-    <div class="container">
-      <h2>Run a full checkup in one command.</h2>
-      <p>Free · Open source · MIT</p>
-      <div class="cta-code" onclick="navigator.clipboard.writeText('npm install -g pulser-cli')" style="display:inline-block;font-size:18px;padding:16px 32px">$ npm install -g pulser-cli</div>
-      <div class="links">
-        <a href="https://github.com/whynowlab/pulser">GitHub</a>
-        <a href="https://www.npmjs.com/package/pulser-cli">npm</a>
+    <!-- ========== Terminal Demo ========== -->
+    <section id="demo" class="py-16 md:py-24 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-start">
+          <!-- Left: Copy -->
+          <div>
+            <p class="font-mono text-cyan-500 text-sm mb-2">Demo</p>
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-6">실제 출력, 그대로</h2>
+            <p class="text-slate-300 text-base leading-relaxed mb-4">
+              다른 도구는 pass/fail만 출력합니다.
+            </p>
+            <p class="text-slate-300 text-base leading-relaxed mb-6">
+              pulser는 <strong class="text-slate-50">왜 문제인지</strong> 설명하고,
+              <strong class="text-slate-50">바로 쓸 템플릿</strong>을 제시하고,
+              <strong class="text-slate-50">자동 수정</strong>하고,
+              <strong class="text-slate-50">롤백</strong>까지 제공합니다.
+            </p>
+            <p class="text-slate-500 text-sm leading-relaxed">
+              Others stop at pass/fail. pulser explains why, provides templates, auto-fixes, and lets you undo.
+            </p>
+          </div>
+
+          <!-- Right: Terminal -->
+          <div class="bg-[#0a0a0a] border border-slate-800 rounded-sm overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-800">
+              <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+            </div>
+            <pre class="p-4 sm:p-6 font-mono text-sm leading-6 text-slate-300 overflow-x-auto" aria-label="pulser 터미널 데모 출력"><code><span class="text-slate-500">$</span> pulser
+
+<span class="text-slate-500">pulser v0.3.1</span>
+
+<span class="text-emerald-500">54</span> skills scanned · Score: <span class="text-emerald-500">89</span>/100
+<span class="text-emerald-500">✓ 48 healthy</span>  <span class="text-yellow-500">⚠ 4 warnings</span>  <span class="text-red-500">✗ 2 errors</span>
+
+<span class="text-slate-500">Top issues:</span>
+  cardnews    <span class="text-slate-500">—</span> <span class="text-yellow-500">No Gotchas, no allowed-tools</span>
+  geo-audit   <span class="text-slate-500">—</span> <span class="text-yellow-500">338 lines, single file</span>
+
+<span class="text-cyan-500">💊 Rx #1 — cardnews</span>
+  <span class="text-slate-500">[GOTCHAS]</span> Add Gotchas section
+  <span class="text-slate-500">Why:</span> Anthropic's highest-ROI improvement
+  <span class="text-slate-500">Template:</span>
+<span class="text-cyan-500">    ## Gotchas
+    1. Validate output against conventions
+    2. Check scope — don't over-generate</span>
+
+  <span class="text-slate-500">Fix:</span> <span class="text-emerald-500">AUTO</span> <span class="text-slate-500">·</span> <span class="text-slate-50">pulser --fix</span> <span class="text-slate-500">to apply ·</span> <span class="text-slate-50">pulser undo</span> <span class="text-slate-500">to rollback</span></code></pre>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <footer>
-    <div class="container">
-      MIT · <a href="https://github.com/whynowlab">whynowlab</a> · Built for people writing real Claude Code skills.
+    <!-- ========== Core Pipeline ========== -->
+    <section id="features" class="py-16 md:py-24 border-t border-slate-800">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="font-mono text-cyan-500 text-sm mb-2">Core Pipeline</p>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-12">진단에서 롤백까지, 한 흐름으로</h2>
+
+        <ol class="flex flex-col md:grid md:grid-cols-4 gap-8 md:gap-6">
+          <!-- Diagnose -->
+          <li class="relative pl-6 md:pl-0 md:pt-6 border-l-2 md:border-l-0 md:border-t-2 border-red-500">
+            <div class="absolute left-[-5px] top-1 md:top-[-5px] md:left-4 w-2.5 h-2.5 bg-black border-2 border-red-500 rounded-full"></div>
+            <h3 class="text-red-500 font-bold text-lg mb-2">Diagnose</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">8가지 규칙으로 증상을 찾고 문제를 분류합니다.</p>
+            <p class="text-slate-500 text-xs mt-2">Scan and classify issues across 8 rules.</p>
+          </li>
+          <!-- Prescribe -->
+          <li class="relative pl-6 md:pl-0 md:pt-6 border-l-2 md:border-l-0 md:border-t-2 border-cyan-500">
+            <div class="absolute left-[-5px] top-1 md:top-[-5px] md:left-4 w-2.5 h-2.5 bg-black border-2 border-cyan-500 rounded-full"></div>
+            <h3 class="text-cyan-500 font-bold text-lg mb-2">Prescribe</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">왜 문제인지 설명하고, 바로 쓸 수 있는 템플릿을 제시합니다.</p>
+            <p class="text-slate-500 text-xs mt-2">Explain why and provide ready-to-use templates.</p>
+          </li>
+          <!-- Fix -->
+          <li class="relative pl-6 md:pl-0 md:pt-6 border-l-2 md:border-l-0 md:border-t-2 border-emerald-500">
+            <div class="absolute left-[-5px] top-1 md:top-[-5px] md:left-4 w-2.5 h-2.5 bg-black border-2 border-emerald-500 rounded-full"></div>
+            <h3 class="text-emerald-500 font-bold text-lg mb-2">Fix</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">안전한 구조 수정을 자동으로 적용합니다.</p>
+            <p class="text-slate-500 text-xs mt-2">Auto-apply safe structural fixes with backup.</p>
+          </li>
+          <!-- Rollback -->
+          <li class="relative pl-6 md:pl-0 md:pt-6 border-l-2 md:border-l-0 md:border-t-2 border-yellow-500">
+            <div class="absolute left-[-5px] top-1 md:top-[-5px] md:left-4 w-2.5 h-2.5 bg-black border-2 border-yellow-500 rounded-full"></div>
+            <h3 class="text-yellow-500 font-bold text-lg mb-2">Rollback</h3>
+            <p class="text-slate-300 text-sm leading-relaxed">언제든 이전 상태로 되돌릴 수 있는 안전망.</p>
+            <p class="text-slate-500 text-xs mt-2">Instant undo — your safety net.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ========== 3 Usage Methods ========== -->
+    <section id="usage" class="py-16 md:py-24 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <p class="font-mono text-cyan-500 text-sm mb-2">Usage</p>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-12">어디서든, 같은 진단</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+          <article class="py-6 md:py-0 md:pr-6">
+            <p class="text-cyan-500 font-mono text-sm mb-2">Claude Code</p>
+            <h3 class="text-xl font-bold mb-3">대화 안에서</h3>
+            <div class="font-mono text-sm text-slate-50 bg-[#0a0a0a] border border-slate-800 rounded-sm px-3 py-2 inline-block mb-3">스킬 점검해줘</div>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              Claude Code 대화에서 바로 진단하고 수정까지. <span class="font-mono text-cyan-500">/pulser</span>도 됩니다.
+            </p>
+          </article>
+          <article class="py-6 md:py-0 md:px-6">
+            <p class="text-cyan-500 font-mono text-sm mb-2">Codex</p>
+            <h3 class="text-xl font-bold mb-3">프롬프트로</h3>
+            <div class="font-mono text-sm text-slate-50 bg-[#0a0a0a] border border-slate-800 rounded-sm px-3 py-2 inline-block mb-3">pulser 실행해</div>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              OpenAI Codex 환경에서도 동일한 진단 파이프라인을 실행합니다.
+            </p>
+          </article>
+          <article class="py-6 md:py-0 md:pl-6">
+            <p class="text-cyan-500 font-mono text-sm mb-2">Terminal</p>
+            <h3 class="text-xl font-bold mb-3">직접 실행</h3>
+            <div class="font-mono text-sm text-slate-50 bg-[#0a0a0a] border border-slate-800 rounded-sm px-3 py-2 inline-block mb-3">pulser --fix</div>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              CI/CD, Git hooks, 또는 터미널에서 직접. JSON 출력도 지원합니다.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== Bottom CTA ========== -->
+    <section class="py-16 md:py-24 border-t border-slate-800">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+        <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Prescribe. Fix.</p>
+        <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-4">한 마디면 끝납니다</h2>
+        <p class="text-slate-300 text-base leading-relaxed mb-8">Free · Open Source · MIT</p>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 max-w-lg mx-auto">
+          <div class="bg-[#0a0a0a] border border-slate-800 rounded-sm px-4 py-3 font-mono text-sm sm:text-base text-cyan-500 flex-1 overflow-x-auto whitespace-nowrap text-left">
+            <span class="text-slate-500 select-none">$ </span>npm install -g pulser-cli
+          </div>
+          <button onclick="copyCmd(this)" aria-label="설치 명령 복사" class="copy-btn inline-flex items-center justify-center min-h-[48px] px-5 border-2 border-cyan-500 text-cyan-500 font-mono font-bold rounded-sm hover:bg-cyan-500 hover:text-black active:bg-cyan-600 active:border-cyan-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors cursor-pointer">
+            Copy
+          </button>
+        </div>
+        <div aria-live="polite" class="copy-feedback mt-2 font-mono text-sm h-5"></div>
+
+        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-8 justify-center">
+          <a href="https://github.com/whynowlab/pulser" rel="noopener noreferrer" target="_blank" class="inline-flex items-center justify-center min-h-[48px] px-5 border border-slate-800 text-slate-50 rounded-sm hover:border-cyan-500 hover:text-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors">
+            GitHub
+          </a>
+          <a href="https://www.npmjs.com/package/pulser-cli" rel="noopener noreferrer" target="_blank" class="inline-flex items-center justify-center min-h-[48px] px-5 border border-slate-800 text-slate-50 rounded-sm hover:border-cyan-500 hover:text-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-black transition-colors">
+            npm
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="border-t border-slate-800 py-8">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <p class="text-slate-500 text-sm font-mono">pulser — Diagnose. Prescribe. Fix.</p>
+      <div class="flex gap-4 text-sm">
+        <a href="https://github.com/whynowlab/pulser" rel="noopener noreferrer" target="_blank" class="text-slate-500 hover:text-cyan-500 transition-colors">GitHub</a>
+        <a href="https://www.npmjs.com/package/pulser-cli" rel="noopener noreferrer" target="_blank" class="text-slate-500 hover:text-cyan-500 transition-colors">npm</a>
+      </div>
     </div>
   </footer>
 
+  <script>
+  // --- Waveform generation ---
+  (function() {
+    var ns = 'http://www.w3.org/2000/svg';
+
+    function ecgPath(cycles, y) {
+      var d = 'M0,' + y;
+      for (var i = 0; i < cycles; i++) {
+        var o = i * 150;
+        d += ' L'+(o+55)+','+y+' L'+(o+62)+','+(y-8)+' L'+(o+66)+','+y;
+        d += ' L'+(o+72)+','+y+' L'+(o+74)+','+(y+4)+' L'+(o+76)+','+(y-55)+' L'+(o+78)+','+(y+30)+' L'+(o+80)+','+y;
+        d += ' L'+(o+100)+','+y+' L'+(o+108)+','+(y-15)+' L'+(o+118)+','+y+' L'+(o+150)+','+y;
+      }
+      return d;
+    }
+
+    function capnoPath(cycles, y) {
+      var d = 'M0,' + y;
+      for (var i = 0; i < cycles; i++) {
+        var o = i * 150;
+        d += ' L'+(o+30)+','+y+' L'+(o+36)+','+(y-40)+' L'+(o+75)+','+(y-44)+' L'+(o+80)+','+y+' L'+(o+150)+','+y;
+      }
+      return d;
+    }
+
+    function makePath(svgId, d, color) {
+      var svg = document.getElementById(svgId);
+      if (!svg) return;
+      var p = document.createElementNS(ns, 'path');
+      p.setAttribute('d', d);
+      p.setAttribute('stroke', color);
+      p.setAttribute('stroke-width', '2');
+      p.setAttribute('fill', 'none');
+      p.setAttribute('vector-effect', 'non-scaling-stroke');
+      svg.appendChild(p);
+    }
+
+    makePath('wave-ecg-svg', ecgPath(16, 100), '#10b981');
+    makePath('wave-capno-svg', capnoPath(16, 100), '#06b6d4');
+  })();
+
+  // --- Copy button ---
+  function copyCmd(btn) {
+    navigator.clipboard.writeText('npm install -g pulser-cli').then(function() {
+      var orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.remove('border-cyan-500','text-cyan-500','hover:bg-cyan-500');
+      btn.classList.add('border-emerald-500','text-emerald-500','hover:bg-emerald-500');
+      var fb = btn.closest('section') ? btn.closest('section').querySelector('.copy-feedback') : null;
+      if (fb) fb.textContent = 'Copied to clipboard';
+      setTimeout(function() {
+        btn.textContent = orig;
+        btn.classList.remove('border-emerald-500','text-emerald-500','hover:bg-emerald-500');
+        btn.classList.add('border-cyan-500','text-cyan-500','hover:bg-cyan-500');
+        if (fb) fb.textContent = '';
+      }, 2000);
+    });
+  }
+  </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 {
   "name": "pulser-cli",
-  "version": "0.2.2",
-  "description": "Diagnose and fix your Claude Code skills — based on Anthropic's internal principles",
+  "version": "0.3.1",
+  "description": "Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.",
   "type": "module",
   "bin": {
     "pulser": "./dist/index.js"
@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "postinstall": "node scripts/postinstall.cjs"
   },
   "keywords": [
     "claude-code",

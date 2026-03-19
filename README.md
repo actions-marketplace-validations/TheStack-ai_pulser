@@ -1,39 +1,37 @@
 # pulser
 
-> Take your skill's pulse.
+> Diagnose. Prescribe. Fix.
 
-Diagnose and fix your Claude Code skills — based on Anthropic's published principles from ["Building Claude Code: How We Use Skills"](https://code.claude.com/docs/en/skills).
+**'스킬 점검해줘' 한 마디.** Claude Code 대화 안에서 진단, 분류, 처방, 수정까지 끝납니다.
+
+"Check my skills." Diagnose, classify, prescribe, and fix — without leaving the conversation.
 
 ```
-$ npx pulser
+$ pulser
 
-  _╭─╮_╭─╮_╭─╮_______
-       pulser v0.1.0
-  Diagnose your Claude Code skills
+  pulser v0.3.1
 
-  ╭──────────────────────────────────────────────╮
-  │  cross-verified-research  research (58%)  ✓  │
-  │  ✓ All rules passed                          │
-  ╰──────────────────────────────────────────────╯
-  ╭──────────────────────────────────────────────────────╮
-  │  reasoning-tracer  analysis (73%)                    │
-  │  ⚠ GOTCHAS        No Gotchas section found           │
-  │  ⚠ ALLOWED-TOOLS  Bash in allowed-tools              │
-  ╰──────────────────────────────────────────────────────╯
+  54 skills scanned · Score: 89/100
+  ✓ 48 healthy  ⚠ 4 warnings  ✗ 2 errors
 
-  💊 Rx #1 — reasoning-tracer
+  Top issues:
+    cardnews    — No Gotchas, no allowed-tools
+    geo-audit   — 338 lines, single file
+
+  💊 Rx #1 — cardnews
   [GOTCHAS] Add Gotchas section
     Why: Anthropic's highest-ROI improvement
-    Suggestion:
-    ## Gotchas
-    1. Do not modify files — this skill is read-only
-    2. Check git status before analyzing
-    3. Keep output under 3000 lines
+    Template:
+      ## Gotchas
+      1. Validate output against conventions
+      2. Check scope — don't over-generate
+
+  Fix type: AUTO
 ```
 
 ## What it does
 
-Pulser scans your `SKILL.md` files and checks them against **8 diagnostic rules** derived from Anthropic's internal skill-building principles:
+pulser scans your `SKILL.md` files against **8 diagnostic rules** derived from Anthropic's published principles in ["Building Claude Code: How We Use Skills"](https://code.claude.com/docs/en/skills):
 
 | Rule | What it checks |
 |------|---------------|
@@ -46,7 +44,7 @@ Pulser scans your `SKILL.md` files and checks them against **8 diagnostic rules*
 | `conflicts` | Trigger keyword overlap between skills |
 | `usage-hooks` | Skill usage logging hook installed |
 
-Each skill is **auto-classified** by type (analysis, research, generation, execution, reference) with confidence scoring, and prescriptions are tailored to the detected type.
+Each skill is **auto-classified** by type (analysis, research, generation, execution, reference) with confidence scoring. Prescriptions are tailored to the detected type.
 
 ## Install
 
@@ -54,39 +52,63 @@ Each skill is **auto-classified** by type (analysis, research, generation, execu
 npm install -g pulser-cli
 ```
 
-## Run
-
-```bash
-pulser
-```
+On install, pulser registers itself as a Claude Code skill — say **"스킬 점검해줘"** or **"/pulser"** to run it conversationally.
 
 ## Usage
 
+### In Claude Code
+
+Just say it:
+
+```
+스킬 점검해줘
+```
+
+Or use the slash command:
+
+```
+/pulser
+```
+
+Claude runs the diagnosis, summarizes results, and offers to fix issues — all within the conversation.
+
+### In terminal
+
 ```bash
 # Scan default path (~/.claude/skills/)
-npx pulser
+pulser
 
 # Scan a specific directory
-npx pulser ./my-skills/
+pulser ./my-skills/
 
 # Scan a single skill
-npx pulser --skill reasoning-tracer
+pulser --skill reasoning-tracer
+
+# Auto-fix issues with backup
+pulser --fix
+
+# Rollback the last fix
+pulser undo
 
 # JSON output (for CI/automation)
-npx pulser --format json
+pulser --format json
 
 # Markdown report
-npx pulser --format md
+pulser --format md
 
 # Treat warnings as errors
-npx pulser --strict
+pulser --strict
 
-# Include experimental rules
-npx pulser --all
-
-# Disable animation (non-TTY)
-npx pulser --no-anim
+# Disable TUI animation
+pulser --no-anim
 ```
+
+## Core Pipeline
+
+1. **Diagnose** — Scan and classify issues across 8 rules
+2. **Prescribe** — Explain why it matters, provide ready-to-use templates
+3. **Fix** — Auto-apply safe structural fixes with full backup
+4. **Rollback** — Instant undo, your safety net
 
 ## Exit Codes
 
@@ -96,36 +118,16 @@ npx pulser --no-anim
 | `1` | Errors found |
 | `2` | Warnings found (with `--strict`) |
 
-## The 7 Principles
-
-Based on Anthropic's published guidance:
-
-1. **Don't state the obvious** — Skills should teach Claude things it doesn't already know
-2. **Add Gotchas sections** — Document failure patterns to prevent repeated mistakes
-3. **Use the file system** — Split large skills into supporting files
-4. **Don't put the agent on rails** — Give information, not rigid scripts
-5. **Design the setup process** — Config files for skill initialization
-6. **Description is for the model** — Write trigger conditions, not human summaries
-7. **Store scripts, generate code** — Pre-built scripts + Claude assembles
-
 ## Patient Monitor TUI
 
 When running in a TTY terminal, pulser displays a hospital-style patient monitor with real-time waveform animation:
 
-- **Green ECG waveform** — Skills being scanned
-- **Green capnography** — Rules pass/warn/fail counts
+- **Green ECG** — Skills being scanned
+- **Green capnography** — Pass/warn/fail counts
 - **Cyan plethysmograph** — Health score
 - **Yellow respiratory** — Prescription count
-- **Flatline** — No skills found
-- **Erratic** — Errors detected
 
 Disable with `--no-anim` or pipe to a file.
-
-## Roadmap
-
-- [x] **v0.1** — Read-only diagnostics + prescriptions + TUI
-- [ ] **v0.5** — `--fix` auto-apply with backup/undo
-- [ ] **v1.0** — `--install-hooks` + community launch
 
 ## License
 
