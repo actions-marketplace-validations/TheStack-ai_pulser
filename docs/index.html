@@ -45,33 +45,7 @@
   </script>
   <style>
     html { scroll-behavior: smooth }
-
-    @keyframes waveScrollEcg { from { background-position-x: 0 } to { background-position-x: -300px } }
-    @keyframes waveScrollCap { from { background-position-x: 0 } to { background-position-x: -300px } }
-
-    .wave-ecg {
-      position: absolute; left: 0; width: 100%; height: 120px;
-      top: 28%;
-      opacity: 0.22;
-      background-repeat: repeat-x;
-      background-size: 300px 120px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120' viewBox='0 0 300 120'%3E%3Cpath d='M0,60 L110,60 L122,52 L130,60 L142,60 L146,64 L150,12 L154,95 L158,60 L200,60 L214,42 L232,60 L300,60' stroke='%2310b981' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-      animation: waveScrollEcg 3s linear infinite;
-    }
-    .wave-capno {
-      position: absolute; left: 0; width: 100%; height: 120px;
-      top: 58%;
-      opacity: 0.25;
-      background-repeat: repeat-x;
-      background-size: 300px 120px;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120' viewBox='0 0 300 120'%3E%3Cpath d='M0,90 L60,90 L70,25 L150,20 L162,90 L300,90' stroke='%2306b6d4' stroke-width='2' fill='none'/%3E%3C/svg%3E");
-      animation: waveScrollCap 5s linear infinite;
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto }
-      .wave-ecg, .wave-capno { animation: none }
-    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
   </style>
 </head>
 <body class="min-h-screen bg-black text-slate-50 font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-100">
@@ -98,10 +72,9 @@
 
     <!-- ========== Hero ========== -->
     <section class="relative overflow-hidden py-20 sm:py-24 md:py-32">
-      <!-- Waveform Background (pure CSS — no JS/Canvas/SVG transform) -->
+      <!-- Waveform Background -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div class="wave-ecg"></div>
-        <div class="wave-capno"></div>
+        <canvas id="wave-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%"></canvas>
       </div>
 
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -301,6 +274,94 @@
   </footer>
 
   <script>
+  // --- Waveform animation (Canvas + Retina) ---
+  (function() {
+    var canvas = document.getElementById('wave-canvas');
+    if (!canvas) return;
+    var ctx = canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ecgOff = 0, capOff = 0;
+    var W = 0, H = 0;
+
+    function resize() {
+      var s = canvas.closest('section');
+      W = s.offsetWidth; H = s.offsetHeight;
+      canvas.width = W * dpr; canvas.height = H * dpr;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // ECG: realistic PQRST morphology
+    function ecgY(t) {
+      // P wave (small atrial depolarization bump)
+      if (t > 52 && t < 68) return -9 * Math.sin((t - 52) / 16 * Math.PI);
+      // Q dip
+      if (t >= 72 && t < 75) return 4 * ((t - 72) / 3);
+      // R spike (sharp ventricular depolarization)
+      if (t >= 75 && t < 78) return 4 - 62 * Math.sin((t - 75) / 3 * Math.PI / 2);
+      // S dip
+      if (t >= 78 && t < 82) return -58 + 78 * ((t - 78) / 4);
+      // S recovery
+      if (t >= 82 && t < 86) return 20 * (1 - (t - 82) / 4);
+      // T wave (ventricular repolarization)
+      if (t >= 100 && t < 120) return -16 * Math.sin((t - 100) / 20 * Math.PI);
+      return 0;
+    }
+
+    // EtCO2: capnography with characteristic plateau
+    function capY(t) {
+      if (t >= 25 && t < 33) return -48 * ((t - 25) / 8);                        // expiration rise
+      if (t >= 33 && t < 70) return -48 - 6 * Math.sin((t - 33) / 37 * Math.PI); // alveolar plateau (slight curve)
+      if (t >= 70 && t < 77) return -54 * (1 - Math.pow((t - 70) / 7, 0.6));     // inspiration drop (slightly rounded)
+      return 0;
+    }
+
+    function drawWave(yBase, off, period, color, fn, glow) {
+      ctx.save();
+      // Glow layer
+      if (glow) {
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 8;
+      }
+      ctx.beginPath();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.8;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      for (var x = 0; x <= W; x += 0.5) {
+        var t = (((x + off) % period) + period) % period;
+        var y = yBase + fn(t);
+        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.globalAlpha = 0.25;
+      // ECG — green, upper area
+      drawWave(H * 0.35, ecgOff, 150, '#10b981', ecgY, true);
+      // EtCO2 — cyan, lower area
+      drawWave(H * 0.72, capOff, 150, '#06b6d4', capY, true);
+      ctx.globalAlpha = 1;
+    }
+
+    function tick() {
+      ecgOff += 1.6;
+      capOff += 0.85;
+      render();
+      requestAnimationFrame(tick);
+    }
+
+    // Reduced motion: draw static, don't animate
+    if (reduceMotion) { render(); }
+    else { requestAnimationFrame(tick); }
+  })();
+
   // --- Copy button ---
   function copyCmd(btn) {
     navigator.clipboard.writeText('npm install -g pulser-cli').then(function() {
