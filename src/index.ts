@@ -226,12 +226,15 @@ async function run(options: CLIOptions) {
 }
 
 function prompt(question: string): Promise<string> {
-  const { createInterface } = require("readline");
-  const rl = createInterface({ input: process.stdin, output: process.stdout });
   return new Promise((resolve) => {
-    rl.question(question, (answer: string) => {
-      rl.close();
-      resolve(answer);
+    process.stdout.write(question);
+    let data = "";
+    process.stdin.setEncoding("utf-8");
+    process.stdin.resume();
+    process.stdin.once("data", (chunk) => {
+      data = chunk.toString().trim();
+      process.stdin.pause();
+      resolve(data);
     });
   });
 }
