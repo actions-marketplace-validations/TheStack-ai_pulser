@@ -45,7 +45,33 @@
   </script>
   <style>
     html { scroll-behavior: smooth }
-    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
+
+    @keyframes waveScrollEcg { from { background-position-x: 0 } to { background-position-x: -300px } }
+    @keyframes waveScrollCap { from { background-position-x: 0 } to { background-position-x: -300px } }
+
+    .wave-ecg {
+      position: absolute; left: 0; width: 100%; height: 120px;
+      top: 28%;
+      opacity: 0.22;
+      background-repeat: repeat-x;
+      background-size: 300px 120px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120' viewBox='0 0 300 120'%3E%3Cpath d='M0,60 L110,60 L122,52 L130,60 L142,60 L146,64 L150,12 L154,95 L158,60 L200,60 L214,42 L232,60 L300,60' stroke='%2310b981' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+      animation: waveScrollEcg 3s linear infinite;
+    }
+    .wave-capno {
+      position: absolute; left: 0; width: 100%; height: 120px;
+      top: 58%;
+      opacity: 0.25;
+      background-repeat: repeat-x;
+      background-size: 300px 120px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='120' viewBox='0 0 300 120'%3E%3Cpath d='M0,90 L60,90 L70,25 L150,20 L162,90 L300,90' stroke='%2306b6d4' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+      animation: waveScrollCap 5s linear infinite;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto }
+      .wave-ecg, .wave-capno { animation: none }
+    }
   </style>
 </head>
 <body class="min-h-screen bg-black text-slate-50 font-sans antialiased selection:bg-cyan-500/30 selection:text-cyan-100">
@@ -72,9 +98,10 @@
 
     <!-- ========== Hero ========== -->
     <section class="relative overflow-hidden py-20 sm:py-24 md:py-32">
-      <!-- Waveform Background (Canvas) -->
+      <!-- Waveform Background (pure CSS — no JS/Canvas/SVG transform) -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <canvas id="wave-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.25"></canvas>
+        <div class="wave-ecg"></div>
+        <div class="wave-capno"></div>
       </div>
 
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -274,62 +301,6 @@
   </footer>
 
   <script>
-  // --- Canvas waveform animation (no DPR scaling — simple & universal) ---
-  (function() {
-    var canvas = document.getElementById('wave-canvas');
-    if (!canvas) return;
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    var ctx = canvas.getContext('2d');
-    var ecgOff = 0, capOff = 0;
-
-    function size() {
-      var s = canvas.closest('section');
-      if (!s) return;
-      canvas.width = s.offsetWidth;
-      canvas.height = s.offsetHeight;
-    }
-
-    function ecgY(t) {
-      if (t > 55 && t < 66) return -10 * Math.sin((t - 55) / 11 * Math.PI);
-      if (t >= 72 && t < 76) return 5 - 65 * Math.sin((t - 72) / 4 * Math.PI);
-      if (t >= 76 && t < 80) return 35 * (1 - (t - 76) / 4);
-      if (t >= 100 && t < 115) return -18 * Math.sin((t - 100) / 15 * Math.PI);
-      return 0;
-    }
-
-    function capY(t) {
-      if (t >= 30 && t < 38) return -45 * ((t - 30) / 8);
-      if (t >= 38 && t < 72) return -45 - 5 * ((t - 38) / 34);
-      if (t >= 72 && t < 78) return -50 * (1 - (t - 72) / 6);
-      return 0;
-    }
-
-    function drawLine(yBase, off, period, color, fn) {
-      ctx.beginPath();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 2;
-      for (var x = 0; x <= canvas.width; x++) {
-        var t = (((x + off) % period) + period) % period;
-        var y = yBase + fn(t);
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      }
-      ctx.stroke();
-    }
-
-    function tick() {
-      if (canvas.width !== (canvas.closest('section') || {}).offsetWidth) size();
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ecgOff += 1.8;
-      capOff += 0.9;
-      drawLine(canvas.height * 0.38, ecgOff, 150, '#10b981', ecgY);
-      drawLine(canvas.height * 0.72, capOff, 150, '#06b6d4', capY);
-      requestAnimationFrame(tick);
-    }
-
-    size();
-    requestAnimationFrame(tick);
-  })();
-
   // --- Copy button ---
   function copyCmd(btn) {
     navigator.clipboard.writeText('npm install -g pulser-cli').then(function() {
