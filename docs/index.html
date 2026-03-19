@@ -72,9 +72,9 @@
 
     <!-- ========== Hero ========== -->
     <section class="relative overflow-hidden py-20 sm:py-24 md:py-32">
-      <!-- Waveform Background (Canvas — works on all browsers) -->
+      <!-- Waveform Background (Canvas) -->
       <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <canvas id="wave-canvas" class="w-full h-full" style="opacity:0.22"></canvas>
+        <canvas id="wave-canvas" style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0.25"></canvas>
       </div>
 
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -274,73 +274,59 @@
   </footer>
 
   <script>
-  // --- Canvas waveform animation ---
+  // --- Canvas waveform animation (no DPR scaling — simple & universal) ---
   (function() {
     var canvas = document.getElementById('wave-canvas');
     if (!canvas) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
     var ctx = canvas.getContext('2d');
-    var dpr = window.devicePixelRatio || 1;
     var ecgOff = 0, capOff = 0;
 
-    function resize() {
-      var rect = canvas.parentElement.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.scale(dpr, dpr);
-      canvas.style.width = rect.width + 'px';
-      canvas.style.height = rect.height + 'px';
+    function size() {
+      var s = canvas.closest('section');
+      if (!s) return;
+      canvas.width = s.offsetWidth;
+      canvas.height = s.offsetHeight;
     }
-    resize();
-    window.addEventListener('resize', resize);
 
-    function drawWave(yBase, offset, period, color, shapeFn) {
-      var w = canvas.width / dpr;
+    function ecgY(t) {
+      if (t > 55 && t < 66) return -10 * Math.sin((t - 55) / 11 * Math.PI);
+      if (t >= 72 && t < 76) return 5 - 65 * Math.sin((t - 72) / 4 * Math.PI);
+      if (t >= 76 && t < 80) return 35 * (1 - (t - 76) / 4);
+      if (t >= 100 && t < 115) return -18 * Math.sin((t - 100) / 15 * Math.PI);
+      return 0;
+    }
+
+    function capY(t) {
+      if (t >= 30 && t < 38) return -45 * ((t - 30) / 8);
+      if (t >= 38 && t < 72) return -45 - 5 * ((t - 38) / 34);
+      if (t >= 72 && t < 78) return -50 * (1 - (t - 72) / 6);
+      return 0;
+    }
+
+    function drawLine(yBase, off, period, color, fn) {
       ctx.beginPath();
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
-      for (var x = 0; x <= w; x += 1) {
-        var t = (((x + offset) % period) + period) % period;
-        var y = yBase + shapeFn(t);
+      for (var x = 0; x <= canvas.width; x++) {
+        var t = (((x + off) % period) + period) % period;
+        var y = yBase + fn(t);
         x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
       }
       ctx.stroke();
     }
 
-    function ecgShape(t) {
-      if (t > 55 && t < 66) { // P wave
-        return -10 * Math.sin((t - 55) / 11 * Math.PI);
-      }
-      if (t >= 72 && t < 76) { // QRS up
-        return 5 - 65 * Math.sin((t - 72) / 4 * Math.PI);
-      }
-      if (t >= 76 && t < 80) { // QRS down
-        return 35 * (1 - (t - 76) / 4);
-      }
-      if (t >= 100 && t < 115) { // T wave
-        return -18 * Math.sin((t - 100) / 15 * Math.PI);
-      }
-      return 0;
-    }
-
-    function capnoShape(t) {
-      if (t >= 30 && t < 38) return -45 * ((t - 30) / 8); // rise
-      if (t >= 38 && t < 72) return -45 - 5 * ((t - 38) / 34); // plateau
-      if (t >= 72 && t < 78) return (-50) * (1 - (t - 72) / 6); // drop
-      return 0;
-    }
-
     function tick() {
-      var w = canvas.width / dpr;
-      var h = canvas.height / dpr;
-      ctx.clearRect(0, 0, w, h);
+      if (canvas.width !== (canvas.closest('section') || {}).offsetWidth) size();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
       ecgOff += 1.8;
       capOff += 0.9;
-      drawWave(h * 0.38, ecgOff, 150, '#10b981', ecgShape);
-      drawWave(h * 0.72, capOff, 150, '#06b6d4', capnoShape);
+      drawLine(canvas.height * 0.38, ecgOff, 150, '#10b981', ecgY);
+      drawLine(canvas.height * 0.72, capOff, 150, '#06b6d4', capY);
       requestAnimationFrame(tick);
     }
+
+    size();
     requestAnimationFrame(tick);
   })();
 
