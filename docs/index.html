@@ -81,11 +81,11 @@
       <!-- Waveform Background -->
       <div class="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
         <!-- ECG waveform (green, faster) -->
-        <div class="wave-ecg absolute inset-0" style="width:200%;opacity:0.18">
+        <div class="wave-ecg absolute top-0 left-0 h-full" style="width:200%;opacity:0.18;will-change:transform">
           <svg id="wave-ecg-svg" class="w-full h-full" viewBox="0 0 2400 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
         <!-- EtCO2 / Capnography waveform (cyan, slower) -->
-        <div class="wave-capno absolute inset-0" style="width:200%;opacity:0.22">
+        <div class="wave-capno absolute top-0 left-0 h-full" style="width:200%;opacity:0.22;will-change:transform">
           <svg id="wave-capno-svg" class="w-full h-full" viewBox="0 0 2400 200" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
