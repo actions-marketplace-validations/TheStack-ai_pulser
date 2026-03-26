@@ -18,7 +18,7 @@
 ```
 $ pulser
 
-  pulser v0.3.1
+  pulser v0.4.0
 
   54 skills scanned · Score: 89/100
   ✓ 48 healthy  ⚠ 4 warnings  ✗ 2 errors
@@ -112,12 +112,54 @@ pulser --strict
 pulser --no-anim
 ```
 
+## Eval — Skill Testing
+
+New in v0.4.0: test your skills against real inputs.
+
+```bash
+pulser eval
+```
+
+Write `eval.yaml` next to your `SKILL.md`:
+
+```yaml
+tests:
+  - name: "catches bugs"
+    input: "Review: function add(a,b) { return a - b }"
+    assert:
+      - contains: "subtract"
+      - min-length: 30
+```
+
+pulser runs each test through `claude -p`, checks assertions, and tracks regressions automatically.
+
+```
+$ pulser eval
+
+  reviewer (2 tests)
+    ✓ catches bugs         320ms
+    ✓ passes clean code    280ms
+
+  2 passed · 0 failed · 0.6s
+```
+
+Supported assertions: `contains`, `not-contains`, `min-length`, `max-length`, `matches` (regex).
+
+### Exit Codes (eval)
+
+| Code | Meaning |
+|------|---------|
+| `0` | All tests passed |
+| `1` | Failures found |
+| `3` | Regression detected (previously passing test now fails) |
+
 ## Core Pipeline
 
 1. Diagnose — Scan and classify issues across 8 rules
 2. Prescribe — Explain why it matters, provide ready-to-use templates
 3. Fix — Auto-apply safe structural fixes with full backup
-4. Rollback — Instant undo, your safety net
+4. Eval — Test skills against real inputs, track regressions
+5. Rollback — Instant undo, your safety net
 
 ## Exit Codes
 

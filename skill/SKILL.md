@@ -1,13 +1,13 @@
 ---
 name: pulser
-description: Diagnose Claude Code skills against Anthropic's 7 principles. Scans SKILL.md files, checks 8 rules (gotchas, description, allowed-tools, file-size, structure, frontmatter, conflicts, usage-hooks), classifies skill types, and generates prescriptions. Use when checking skill quality, auditing skills, or before publishing skills. Triggers on "스킬 점검", "스킬 진단", "check skills", "audit skills", "skill health", "pulser".
+description: Diagnose and test Claude Code skills against Anthropic's 7 principles. Scans SKILL.md files, checks 8 rules (gotchas, description, allowed-tools, file-size, structure, frontmatter, conflicts, usage-hooks), classifies skill types, generates prescriptions, and runs eval tests. Use when checking skill quality, auditing skills, testing skills, or before publishing skills. Triggers on "스킬 점검", "스킬 진단", "스킬 테스트", "check skills", "audit skills", "test skills", "skill health", "pulser", "pulser eval".
 disable-model-invocation: false
 allowed-tools: Bash(pulser *), Bash(npx pulser-cli *), Read, Edit
 ---
 
-# Pulser — Skill Diagnostics
+# Pulser — Skill Diagnostics & Testing
 
-Run pulser to diagnose Claude Code skills, then present results conversationally.
+Run pulser to diagnose and test Claude Code skills, then present results conversationally.
 
 ## How to Run
 
@@ -62,6 +62,24 @@ Use the prescription data from JSON. For each fix:
 - Verify the change makes sense in context
 - You can improve on the template prescriptions — you understand the skill's purpose
 
+## Eval — Skill Testing
+
+Run `pulser eval` to test skills that have `eval.yaml` files:
+
+```bash
+pulser eval --format json
+```
+
+For a single skill:
+```bash
+pulser eval --format json --skill <name>
+```
+
+Present eval results conversationally:
+- Total tests, passed, failed, regressions
+- Failed test details with assertion info
+- Regression warnings (previously passing tests that now fail)
+
 ## Gotchas
 
 1. Do not dump raw JSON to the user — always summarize conversationally
@@ -69,3 +87,5 @@ Use the prescription data from JSON. For each fix:
 3. For --fix operations, use Edit tool directly rather than CLI --fix (you have better context)
 4. Score below 50 is critical — highlight urgently
 5. Don't fix all skills at once — group by priority, confirm with user
+6. Eval only works for text-output skills (analysis, research, generation, reference) — execution-type skills cannot be tested this way
+7. Eval requires Claude Code CLI installed (`claude -p` must be available)

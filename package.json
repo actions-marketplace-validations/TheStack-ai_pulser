@@ -1,7 +1,7 @@
 {
   "name": "pulser-cli",
-  "version": "0.3.1",
-  "description": "Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.",
+  "version": "0.4.0",
+  "description": "Diagnose, test, and fix Claude Code skills — without leaving the conversation.",
   "type": "module",
   "bin": {
     "pulser": "./dist/index.js"
@@ -25,9 +25,11 @@
     "boxen": "^8.0.1",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
-    "gray-matter": "^4.0.3"
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.1.0"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^25.5.0",
     "tsup": "^8.5.1",
     "typescript": "^5.9.3"

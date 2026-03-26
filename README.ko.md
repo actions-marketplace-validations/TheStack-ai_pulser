@@ -15,7 +15,7 @@
 ```
 $ pulser
 
-  pulser v0.3.1
+  pulser v0.4.0
 
   54 skills scanned · Score: 89/100
   ✓ 48 healthy  ⚠ 4 warnings  ✗ 2 errors
@@ -109,12 +109,54 @@ pulser --strict
 pulser --no-anim
 ```
 
+## Eval — 스킬 테스트
+
+v0.4.0 신규: 스킬을 실제 입력으로 테스트합니다.
+
+```bash
+pulser eval
+```
+
+`SKILL.md` 옆에 `eval.yaml`을 작성하세요:
+
+```yaml
+tests:
+  - name: "버그 감지"
+    input: "Review: function add(a,b) { return a - b }"
+    assert:
+      - contains: "subtract"
+      - min-length: 30
+```
+
+pulser가 `claude -p`로 각 테스트를 실행하고, assertion을 체크하고, 회귀를 자동 추적합니다.
+
+```
+$ pulser eval
+
+  reviewer (2 tests)
+    ✓ 버그 감지            320ms
+    ✓ 정상 코드 통과        280ms
+
+  2 passed · 0 failed · 0.6s
+```
+
+지원 assertions: `contains`, `not-contains`, `min-length`, `max-length`, `matches` (정규식).
+
+### 종료 코드 (eval)
+
+| 코드 | 의미 |
+|------|------|
+| `0` | 전체 통과 |
+| `1` | 실패 있음 |
+| `3` | 회귀 감지 (이전에 통과하던 테스트가 실패) |
+
 ## 핵심 파이프라인
 
 1. 진단 — 8가지 규칙으로 문제를 찾고 분류
 2. 처방 — 왜 문제인지 설명하고, 바로 쓸 수 있는 템플릿 제시
 3. 수정 — 안전한 구조 수정을 자동 적용 (전체 백업)
-4. 롤백 — 언제든 이전 상태로 되돌리는 안전망
+4. 테스트 — 실제 입력으로 스킬을 실행하고, 회귀 추적
+5. 롤백 — 언제든 이전 상태로 되돌리는 안전망
 
 ## 종료 코드
 

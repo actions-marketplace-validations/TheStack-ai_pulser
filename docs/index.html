@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>pulser — Diagnose. Prescribe. Fix.</title>
-  <meta name="description" content="'스킬 점검해줘' 한 마디. Claude Code 대화 안에서 진단, 분류, 처방, 수정까지 끝납니다.">
-  <meta property="og:title" content="pulser — Diagnose. Prescribe. Fix.">
-  <meta property="og:description" content="Check my skills. Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.">
+  <title>pulser — Diagnose. Test. Fix.</title>
+  <meta name="description" content="'스킬 점검해줘' 한 마디. Claude Code 대화 안에서 진단, 테스트, 처방, 수정까지 끝납니다.">
+  <meta property="og:title" content="pulser — Diagnose. Test. Fix.">
+  <meta property="og:description" content="Check my skills. Diagnose, test, and fix Claude Code skills — without leaving the conversation.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://whynowlab.github.io/pulser/">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="pulser — Diagnose. Prescribe. Fix.">
+  <meta name="twitter:title" content="pulser — Diagnose. Test. Fix.">
   <meta name="twitter:description" content="Check my skills. Diagnose, classify, prescribe, and fix — without leaving the conversation.">
   <link rel="canonical" href="https://whynowlab.github.io/pulser/">
   <script type="application/ld+json">
@@ -18,7 +18,7 @@
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
     "name": "pulser",
-    "description": "Diagnose, classify, prescribe, and fix Claude Code skills — without leaving the conversation.",
+    "description": "Diagnose, test, and fix Claude Code skills — without leaving the conversation.",
     "url": "https://github.com/whynowlab/pulser",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Windows, macOS, Linux",
@@ -79,15 +79,15 @@
 
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div class="max-w-4xl text-center md:text-left">
-          <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Prescribe. Fix.</p>
+          <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Test. Fix.</p>
           <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight tracking-tight mb-6 text-slate-50">
             '스킬 점검해줘'<br class="sm:hidden"> 한 마디.
           </h1>
           <p class="text-lg sm:text-xl md:text-2xl text-slate-300 leading-relaxed mb-3">
-            Claude Code 대화 안에서 진단, 분류, 처방, 수정까지 끝납니다.
+            Claude Code 대화 안에서 진단, 테스트, 처방, 수정까지 끝납니다.
           </p>
           <p class="text-base sm:text-lg md:text-xl text-slate-400 leading-relaxed mb-10">
-            "Check my skills." Diagnose, classify, prescribe, and fix — without leaving the conversation.
+            "Check my skills." Diagnose, test, and fix — without leaving the conversation.
           </p>
 
           <!-- Install CTA -->
@@ -135,7 +135,7 @@
             </div>
             <pre class="p-4 sm:p-6 font-mono text-sm leading-6 text-slate-300 overflow-x-auto" aria-label="pulser 터미널 데모 출력"><code><span class="text-slate-500">$</span> pulser
 
-<span class="text-slate-500">pulser v0.3.1</span>
+<span class="text-slate-500">pulser v0.4.0</span>
 
 <span class="text-emerald-500">54</span> skills scanned · Score: <span class="text-emerald-500">89</span>/100
 <span class="text-emerald-500">✓ 48 healthy</span>  <span class="text-yellow-500">⚠ 4 warnings</span>  <span class="text-red-500">✗ 2 errors</span>
@@ -197,6 +197,51 @@
       </div>
     </section>
 
+    <!-- ========== Eval ========== -->
+    <section class="py-16 md:py-24 border-t border-slate-800">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-12 items-start">
+          <!-- Left: Copy -->
+          <div>
+            <p class="font-mono text-cyan-500 text-sm mb-2">Eval — New in v0.4</p>
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-6">스킬을 실제로 테스트</h2>
+            <p class="text-slate-300 text-base leading-relaxed mb-4">
+              서류 검사를 넘어, <strong class="text-slate-50">모의고사</strong>를 봅니다.
+            </p>
+            <p class="text-slate-300 text-base leading-relaxed mb-6">
+              <code class="text-cyan-500 text-sm">eval.yaml</code>에 테스트를 작성하면
+              pulser가 스킬을 실행하고, 출력을 검증하고,
+              <strong class="text-slate-50">회귀를 자동 추적</strong>합니다.
+            </p>
+            <p class="text-slate-500 text-sm leading-relaxed">
+              Beyond static analysis — run your skills against real inputs, check assertions, and catch regressions automatically.
+            </p>
+          </div>
+
+          <!-- Right: Terminal -->
+          <div class="bg-[#0a0a0a] border border-slate-800 rounded-sm overflow-hidden">
+            <div class="flex items-center gap-2 px-4 py-3 border-b border-slate-800">
+              <div class="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+              <div class="w-2.5 h-2.5 rounded-full bg-emerald-500"></div>
+            </div>
+            <pre class="p-4 sm:p-6 font-mono text-sm leading-6 text-slate-300 overflow-x-auto" aria-label="pulser eval 터미널 데모 출력"><code><span class="text-slate-500">$</span> pulser eval
+
+  <span class="text-slate-50">reviewer</span> <span class="text-slate-500">(2 tests)</span>
+    <span class="text-emerald-500">✓</span> catches bugs         <span class="text-slate-500">320ms</span>
+    <span class="text-emerald-500">✓</span> passes clean code    <span class="text-slate-500">280ms</span>
+
+  <span class="text-slate-50">geo-audit</span> <span class="text-slate-500">(3 tests)</span>
+    <span class="text-emerald-500">✓</span> URL analysis         <span class="text-slate-500">450ms</span>
+    <span class="text-emerald-500">✓</span> schema detection     <span class="text-slate-500">380ms</span>
+    <span class="text-emerald-500">✓</span> report generation    <span class="text-slate-500">520ms</span>
+
+  <span class="text-emerald-500">5 passed</span> · <span class="text-slate-500">0 failed</span> · <span class="text-slate-500">1.95s</span></code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ========== 3 Usage Methods ========== -->
     <section id="usage" class="py-16 md:py-24 border-t border-slate-800">
       <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -235,7 +280,7 @@
     <!-- ========== Bottom CTA ========== -->
     <section class="py-16 md:py-24 border-t border-slate-800">
       <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Prescribe. Fix.</p>
+        <p class="font-mono text-cyan-500 text-sm sm:text-base mb-4 tracking-wider">Diagnose. Test. Fix.</p>
         <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold leading-tight mb-4">한 마디면 끝납니다</h2>
         <p class="text-slate-300 text-base leading-relaxed mb-8">Free · Open Source · MIT</p>
 
@@ -265,7 +310,7 @@
   <!-- Footer -->
   <footer class="border-t border-slate-800 py-8">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-      <p class="text-slate-500 text-sm font-mono">pulser — Diagnose. Prescribe. Fix.</p>
+      <p class="text-slate-500 text-sm font-mono">pulser — Diagnose. Test. Fix.</p>
       <div class="flex gap-4 text-sm">
         <a href="https://github.com/whynowlab/pulser" rel="noopener noreferrer" target="_blank" class="text-slate-500 hover:text-cyan-500 transition-colors">GitHub</a>
         <a href="https://www.npmjs.com/package/pulser-cli" rel="noopener noreferrer" target="_blank" class="text-slate-500 hover:text-cyan-500 transition-colors">npm</a>

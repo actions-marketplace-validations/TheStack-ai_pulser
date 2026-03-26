@@ -127,7 +127,7 @@ export class PatientMonitor {
     this.clearLines();
     const flat = `${RED}${FLATLINE.slice(0, WAVE_WIDTH)}${RESET}`;
     console.log("");
-    console.log(`${BG_BLACK}${DIM}  pulser v0.1.0${RESET}${BG_BLACK}                        ${DIM}${new Date().toLocaleTimeString()}${RESET}`);
+    console.log(`${BG_BLACK}${DIM}  pulser v0.4.0${RESET}${BG_BLACK}                        ${DIM}${new Date().toLocaleTimeString()}${RESET}`);
     console.log(`${BG_BLACK}${RED}  SKILLS    ┃${flat}  ${BOLD}FLATLINE${RESET}`);
     console.log(`${BG_BLACK}${DIM}  No skills found${RESET}`);
     console.log(RESET);
@@ -141,7 +141,7 @@ export class PatientMonitor {
     const now = new Date().toLocaleTimeString();
     const lines = [
       "",
-      `${BG_BLACK}${DIM}  pulser v0.1.0${RESET}${BG_BLACK}                        ${DIM}${now}${RESET}`,
+      `${BG_BLACK}${DIM}  pulser v0.4.0${RESET}${BG_BLACK}                        ${DIM}${now}${RESET}`,
       `${BG_BLACK}${DIM}${"─".repeat(60)}${RESET}`,
       `${BG_BLACK}  ${this.waveforms.skills.tick()}`,
       `${BG_BLACK}${DIM}${"─".repeat(60)}${RESET}`,

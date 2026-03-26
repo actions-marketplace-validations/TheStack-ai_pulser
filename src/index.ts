@@ -1,6 +1,7 @@
 import { Command } from "commander";
 import { join } from "path";
 import { scanSkills } from "./scanner.js";
+import { runEval } from "./eval/index.js";
 import { classifySkill } from "./classifier.js";
 import { getActiveRules } from "./rules/index.js";
 import { generatePrescriptions, generateSystemPrescriptions } from "./prescriber.js";
@@ -156,7 +157,7 @@ async function run(options: CLIOptions) {
   if (options.format === "text" && !useMonitor) {
     console.log("");
     console.log("  _\u256D\u2500\u256E_\u256D\u2500\u256E_\u256D\u2500\u256E_______");
-    console.log("       pulser v0.1.0");
+    console.log("       pulser v0.4.0");
     console.log("  Diagnose your Claude Code skills");
     console.log("");
     console.log(`  Scanning ${expandHome(options.path)} ...`);
@@ -277,7 +278,7 @@ const program = new Command();
 program
   .name("pulser")
   .description("Diagnose and fix your Claude Code skills")
-  .version("0.1.0")
+  .version("0.4.0")
   .argument("[path]", "Path to skills directory", DEFAULT_SKILLS_PATH)
   .option("--skill <name>", "Scan a single skill by name")
   .option("--format <type>", "Output format: text, json, md", "text")
@@ -303,6 +304,14 @@ program
       fix: opts.fix || false,
       detail: opts.detail || !!opts.skill,
     });
+  });
+
+program
+  .command("eval [path]")
+  .description("Run skill tests from eval.yaml files")
+  .action(async (path) => {
+    const exitCode = await runEval(path || DEFAULT_SKILLS_PATH);
+    process.exit(exitCode);
   });
 
 program
