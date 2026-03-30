@@ -1,0 +1,86 @@
+name: 'Pulser — Claude Code Skill Linter'
+description: 'Diagnose Claude Code SKILL.md files against Anthropic best practices. Checks 8 rules, classifies skill types, prescribes fixes.'
+author: 'TheStack-ai'
+
+branding:
+  icon: 'activity'
+  color: 'green'
+
+inputs:
+  path:
+    description: 'Path to skills directory'
+    required: false
+    default: '.claude/skills'
+  strict:
+    description: 'Treat warnings as errors (exit 1 on any issue)'
+    required: false
+    default: 'false'
+  version:
+    description: 'pulser-cli version to install (e.g. 0.4.0, latest)'
+    required: false
+    default: 'latest'
+
+outputs:
+  score:
+    description: 'Overall skill health score (0-100)'
+    value: ${{ steps.pulser.outputs.score }}
+  errors:
+    description: 'Number of errors found'
+    value: ${{ steps.pulser.outputs.errors }}
+  warnings:
+    description: 'Number of warnings found'
+    value: ${{ steps.pulser.outputs.warnings }}
+  total:
+    description: 'Total skills scanned'
+    value: ${{ steps.pulser.outputs.total }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install pulser-cli
+      shell: bash
+      run: npm install -g pulser-cli@${{ inputs.version }}
+
+    - name: Run pulser
+      id: pulser
+      shell: bash
+      run: |
+        set +e
+        REPORT=$(pulser "${{ inputs.path }}" --format json --no-anim 2>&1)
+        EXIT_CODE=$?
+        set -e
+
+        if echo "$REPORT" | jq -e '.summary' > /dev/null 2>&1; then
+          SCORE=$(echo "$REPORT" | jq -r '.summary.score')
+          ERRORS=$(echo "$REPORT" | jq -r '.summary.errors')
+          WARNINGS=$(echo "$REPORT" | jq -r '.summary.warnings')
+          TOTAL=$(echo "$REPORT" | jq -r '.summary.total')
+        else
+          SCORE=0
+          ERRORS=-1
+          WARNINGS=-1
+          TOTAL=0
+        fi
+
+        echo "score=$SCORE" >> "$GITHUB_OUTPUT"
+        echo "errors=$ERRORS" >> "$GITHUB_OUTPUT"
+        echo "warnings=$WARNINGS" >> "$GITHUB_OUTPUT"
+        echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+        echo "::group::Pulser Diagnostic Report"
+        pulser "${{ inputs.path }}" --format text --no-anim 2>&1 || true
+        echo "::endgroup::"
+
+        if [ "${{ inputs.strict }}" = "true" ]; then
+          if [ "$ERRORS" -gt 0 ] || [ "$WARNINGS" -gt 0 ]; then
+            echo "::error::Pulser found $ERRORS error(s) and $WARNINGS warning(s). Score: $SCORE/100"
+            exit 1
+          fi
+        elif [ "$EXIT_CODE" -eq 1 ]; then
+          echo "::warning::Pulser found issues. Score: $SCORE/100. Use strict mode to fail the build."
+        fi
