@@ -1,5 +1,5 @@
 name: 'Pulser — Claude Code Skill Linter'
-description: 'Diagnose Claude Code SKILL.md files against Anthropic best practices. Checks 8 rules, classifies skill types, prescribes fixes.'
+description: 'Lint Claude Code SKILL.md files against Anthropic best practices. 8 diagnostic rules with auto-fix.'
 author: 'TheStack-ai'
 
 branding:
