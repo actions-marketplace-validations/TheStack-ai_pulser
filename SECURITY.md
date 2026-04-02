@@ -12,7 +12,7 @@
 If you discover a security vulnerability in pulser, please report it responsibly:
 
 1. **Do not** open a public issue
-2. Email **security@whynowlab.com** with:
+2. Email **security@thestack-ai.com** with:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact

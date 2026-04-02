@@ -6,7 +6,7 @@ CLI tool that diagnoses and fixes Claude Code skills based on Anthropic's publis
 **Name:** pulser
 **Tagline:** "Take your skill's pulse."
 **npm:** `pulser`
-**GitHub:** `whynowlab/pulser`
+**GitHub:** `thestack-ai/pulser`
 **License:** MIT
 
 ## Problem

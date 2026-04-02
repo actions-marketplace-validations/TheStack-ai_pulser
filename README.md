@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://whynowlab.github.io/pulser/">Website</a> ·
+  <a href="https://thestack-ai.github.io/pulser/">Website</a> ·
   <a href="https://www.npmjs.com/package/pulser-cli">npm</a> ·
   <a href="./README.ko.md">한국어</a>
   <br><br>

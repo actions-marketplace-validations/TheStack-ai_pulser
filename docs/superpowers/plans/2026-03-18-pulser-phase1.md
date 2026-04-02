@@ -68,7 +68,7 @@ Edit `package.json` to:
     "lint": "tsc --noEmit"
   },
   "keywords": ["claude-code", "skills", "lint", "cli", "anthropic"],
-  "author": "whynowlab",
+  "author": "thestack-ai",
   "license": "MIT"
 }
 ```
